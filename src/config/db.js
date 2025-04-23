@@ -17,7 +17,7 @@ async function createDatabaseIfNotExists() {
 await createDatabaseIfNotExists();
 
 const sequelize = new Sequelize(env.DB_NAME, env.DB_USER, env.DB_PASSWORD, {
-  host: '127.0.0.1',
+  host: env.DB_HOST,
   dialect: 'mysql',
   logging: false
 });
