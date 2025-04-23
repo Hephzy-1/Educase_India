@@ -19,6 +19,7 @@ await createDatabaseIfNotExists();
 const sequelize = new Sequelize(env.DB_NAME, env.DB_USER, env.DB_PASSWORD, {
   host: '127.0.0.1',
   dialect: 'mysql',
+  logging: false
 });
 
 export default sequelize;

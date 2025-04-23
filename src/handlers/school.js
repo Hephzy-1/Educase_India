@@ -1,65 +1,62 @@
 import { SchoolUsecases } from '../usecases/school.js';
-import asyncHandler from '../middlewares/async.js';
 import { ErrorResponse } from '../utils/errorResponse.js';
-import { createSchool } from "../validation/school.js";
+import { createSchool, getSchools } from "../validation/school.js";
 import { calculateDistance } from "../utils/distance.js";
+import AppResponse from "../utils/appResponse.js"
 
-export const addSchool = asyncHandler(async (req, res, next) => {
+export const addSchool = async (req, res, next) => {
   const { error, value } = createSchool.validate(req.body);
 
   if (error) {
     console.error(error.message);
     return next(new ErrorResponse(error.details[0].message, 400));
   }
-
+ 
   const { name, ...data } = value;
 
-  try {
-    const existingSchool = await SchoolUsecases.schoolByName(name);
+  const existingSchool = await SchoolUsecases.schoolByName(name);
 
-    if (existingSchool) {
-      return next(new ErrorResponse("School already exists", 400));
-    }
-    
-    const newSchool = await SchoolUsecases.addNewSchool(value);
-    
-    return AppResponse(res, "New school has been added", newSchool, 201);
-  } catch (error) {
-    console.error(error.message);
-    return next(new ErrorResponse("An error occurred while adding the school", 500));
+  if (existingSchool) {
+    return next(new ErrorResponse("School already exists", 400));
   }
-});
 
-export const listSchools = asyncHandler(async (req, res, next) => {
-  const { latitude, longitude } = req.body;
+  const newSchool = await SchoolUsecases.addNewSchool(value);
 
-  try {
-    const schools = await SchoolUsecases.listAllSchools();
+  return AppResponse(res, "New school has been added", newSchool, 201);
 
-    let sortedSchools;
+};
 
-    if (latitude && longitude) {
- 
-      const schoolsWithDistance = schools.map((school) => {
-        const distance = calculateDistance(
-          parseFloat(latitude),
-          parseFloat(longitude),
-          school.latitude,
-          school.longitude
-        );
+export const listSchools = async (req, res, next) => {
+  const { error, value } = getSchools.validate(req.query);
 
-        return {
-          ...school.get({ plain: true }),
-          distance
-        };
-      });
-
-      sortedSchools = schoolsWithDistance.sort((a, b) => a.distance - b.distance);
-    } 
-
-    return AppResponse(res, 200, sortedSchools, "Here is the list of schools");
-  } catch (error) {
-    console.error(error.message);
-    return next(new ErrorResponse("An error occurred while fetching the schools", 500));
+  if (error) {
+    throw next(new ErrorResponse(error.details[0].message, 400));
   }
-});
+
+  const { latitude, longitude } = value;
+
+  const schools = await SchoolUsecases.listAllSchools();
+
+  if (!schools) {
+    throw next(new ErrorResponse("No schools found", 404));
+  }
+
+  const schoolsWithDistance = schools
+    .map((school) => {
+      const distance = calculateDistance(
+        parseFloat(latitude),
+        parseFloat(longitude),
+        school.latitude,
+        school.longitude
+      );
+
+      return {
+        ...school.get({ plain: true }),
+        distance
+      };
+    })
+    .sort((a, b) => a.distance - b.distance);  
+
+  return AppResponse(res, "Here is the list of schools", schoolsWithDistance, 200);
+
+};

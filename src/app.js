@@ -12,9 +12,9 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/', schoolRoute);
 
-app.all('*', (req, res, next) => {
-  const error = new ErrorResponse('Route not found. Check url or method', 404);
-  next(error); 
+app.use((req, res, next) => {
+  const error = new ErrorResponse(`Route ${req.originalUrl} not found`, 404);
+  next(error);
 });
 
 app.use(errorHandler);

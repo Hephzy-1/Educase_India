@@ -1,3 +1,5 @@
+import School from "../models/school.js"; 
+
 export class SchoolRepository {
   static async addSchool(values) {
     const school = await School.create({
@@ -6,6 +8,7 @@ export class SchoolRepository {
       longitude: values.longitude,
       latitude: values.latitude
     });
+    
     return school;
   }
 

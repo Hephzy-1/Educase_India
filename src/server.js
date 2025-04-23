@@ -7,6 +7,8 @@ import app from './app.js';
     await sequelize.authenticate();
     console.log('Database connected successfully');
 
+    await sequelize.sync();
+
     app.listen(env.PORT, () => {
       console.log(`Server running at http://localhost:${env.PORT}`);
     });
