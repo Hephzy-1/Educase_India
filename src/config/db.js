@@ -4,7 +4,7 @@ import env from './env.js';
 
 async function createDatabaseIfNotExists() {
   const connection = await mysql.createConnection({
-    host: '127.0.0.1',
+    host: env.DB_HOST,  
     user: env.DB_USER,
     password: env.DB_PASSWORD,
   });
